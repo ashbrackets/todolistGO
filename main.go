@@ -74,9 +74,14 @@ func update_task(tasks []Task, args []string) []Task {
 	return tasks
 }
 
-// ./todo delete id
+// ./todo delete id|all
 func delete_task(tasks []Task, args []string) []Task {
 	idStr := args[0]
+	if idStr == "all" {
+		tasks = []Task{}
+		fmt.Println("Deleted all tasks from todo list")
+		return tasks
+	}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		fmt.Println(err)
@@ -95,6 +100,28 @@ func delete_task(tasks []Task, args []string) []Task {
 
 // ./todo list
 func list_tasks(tasks []Task, args []string) []Task {
+	retTasks := tasks
+	if len(args) > 0 {
+		switch args[0] {
+		case "check", "c", "1":
+			newTasks := []Task{}
+			for _, task := range tasks {
+				if task.Status == 1 {
+					newTasks = append(newTasks, task)
+				}
+			}
+			tasks = newTasks
+		case "uncheck", "u", "0":
+			newTasks := []Task{}
+			for _, task := range tasks {
+				if task.Status == 0 {
+					newTasks = append(newTasks, task)
+				}
+			}
+			tasks = newTasks
+		}
+	}
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 5, ' ', 0)
 	fmt.Fprintln(w, "ID\tDescription\tCreated At\tUpdated At\tStatus\t")
 	for _, task := range tasks {
@@ -116,7 +143,7 @@ func list_tasks(tasks []Task, args []string) []Task {
 	if err != nil {
 		fmt.Println("Error flushing tabwriter:", err)
 	}
-	return tasks
+	return retTasks
 }
 
 func help() {
